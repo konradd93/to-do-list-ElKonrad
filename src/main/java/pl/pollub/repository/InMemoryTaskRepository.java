@@ -30,9 +30,9 @@ public class InMemoryTaskRepository {
     }
 
     public Task findOne(Long id){
-        if(fakeTable.stream().anyMatch(e -> e.getId().equals(id)))
-            return fakeTable.stream().filter(e -> e.getId() == id).findFirst().get();
-        return null;
+        if(!fakeTable.stream().anyMatch(e -> e.getId().equals(id)))
+            return null;
+        return fakeTable.stream().filter(e -> e.getId() == id).findFirst().get();
     }
 
     public List<Task> findAll(){
@@ -41,6 +41,10 @@ public class InMemoryTaskRepository {
 
     public void delete(Long id){
         Task task = findOne(id);
+        fakeTable.remove(task);
+    }
+
+    public void delete(Task task){
         fakeTable.remove(task);
     }
 

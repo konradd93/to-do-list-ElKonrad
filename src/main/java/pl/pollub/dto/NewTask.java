@@ -1,4 +1,4 @@
-package pl.pollub.domain;
+package pl.pollub.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -3,7 +3,7 @@ package pl.pollub.component;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pl.pollub.domain.NewTask;
+import pl.pollub.dto.NewTask;
 import pl.pollub.domain.Task;
 
 /**
