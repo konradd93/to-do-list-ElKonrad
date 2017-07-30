@@ -1,4 +1,4 @@
-package pl.pollub;
+package pl.pollub.unit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,8 +10,10 @@ import pl.pollub.domain.Task;
 import pl.pollub.dto.NewTask;
 import pl.pollub.exception.TaskNotFoundException;
 import pl.pollub.repository.InMemoryTaskRepository;
+import pl.pollub.repository.InMemoryUserRepository;
 import pl.pollub.service.TaskService;
-import pl.pollub.service.TaskServiceImpl;
+import pl.pollub.service.impl.TaskServiceImpl;
+import pl.pollub.service.impl.UserServiceImpl;
 
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class TaskListTest {
     @Before
     public void setup(){
         customMapper = new CustomMapperImpl(new ModelMapper());
-        taskService = new TaskServiceImpl(new InMemoryTaskRepository());
+        taskService = new TaskServiceImpl(new InMemoryTaskRepository(), new UserServiceImpl(new InMemoryUserRepository()));
     }
 
     @Test
@@ -83,17 +85,6 @@ public class TaskListTest {
     @Test(expected = TaskNotFoundException.class)
     public void shouldThrowAnExceptionWhenGetByIdNonexistentTask(){
         taskService.getTaskById(1L);
-    }
-
-    @Test
-    public void difference_between_newly_added_two_tasks_should_be_equal_one(){
-        NewTask newTask1 = new NewTask("Task1");
-        NewTask newTask2 = new NewTask("Task2");
-        Task task1 = taskService.saveTask(customMapper.mapToEntity(newTask1));
-        Task task2 = taskService.saveTask(customMapper.mapToEntity(newTask2));
-
-        long difference = Math.abs(task2.getId() - task1.getId());
-        assertEquals(1, difference);
     }
 
     @Test(expected = TaskNotFoundException.class)

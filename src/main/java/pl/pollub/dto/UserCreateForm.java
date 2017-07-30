@@ -4,21 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotBlank;
-import pl.pollub.domain.User;
 
-import java.util.Set;
+import javax.validation.constraints.Size;
 
+/**
+ * Created by konrad on 29.07.17.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewTask {
+public class UserCreateForm {
 
     @NotBlank
-    private String content;
-
-    private Set<User> contributors;
-
-    public NewTask(String content) {
-        this.content = content;
-    }
+    @Size(min = 5)
+    private String username;
 }

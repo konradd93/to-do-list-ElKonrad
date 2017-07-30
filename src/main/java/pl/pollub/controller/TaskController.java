@@ -1,24 +1,22 @@
 package pl.pollub.controller;
 
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import pl.pollub.component.CustomMapper;
 import pl.pollub.domain.Task;
 import pl.pollub.dto.NewTask;
-import pl.pollub.exception.Error;
-import pl.pollub.exception.TaskNotFoundException;
 import pl.pollub.service.TaskService;
 
 import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping(value = "/api/tasks")
 public class TaskController {
 
     @Autowired
@@ -41,6 +39,7 @@ public class TaskController {
                 .path(String.valueOf(savedTask.getId()))
                 .build()
                 .toUri();
+        headers.setLocation(locationUri);
 
         return new ResponseEntity<Task>(savedTask, headers, HttpStatus.CREATED);
     }
@@ -63,11 +62,5 @@ public class TaskController {
 
         taskService.deleteTaskById(id);
         return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-    }
-
-    @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<Error> taskNotFound(TaskNotFoundException e) {
-        Error error = new Error(e.getMessage());
-        return new ResponseEntity<Error>(error, e.getHttpReturnStatus());
     }
 }

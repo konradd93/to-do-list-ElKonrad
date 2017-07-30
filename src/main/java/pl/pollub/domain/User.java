@@ -6,28 +6,20 @@ import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.NotNull;
-import java.util.Set;
+import javax.validation.constraints.Size;
 
+/**
+ * Created by konrad on 29.07.17.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Task {
+public class User {
 
     @NotNull
     private Long id;
 
     @NotBlank
-    private String content;
-
-    private boolean isActive;
-
-    @NotNull
-    private User owner;
-
-    private Set<User> contributors;
-
-    public Task(long id, String content) {
-        this.id = id;
-        this.content = content;
-    }
+    @Size(min = 5)
+    private String username;
 }
