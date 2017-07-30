@@ -23,7 +23,7 @@ public interface TaskService {
 
     Set<Task> getTasksByOwnerId(Long ownerId);
 
-    Set<User> getContributorsByTaskId(Long id);
+    Set<User> getContributorsByTaskId(Long taskId);
 
     Task getTaskByTaskIdAndOwnerId(Long taskId, Long ownerId);
 

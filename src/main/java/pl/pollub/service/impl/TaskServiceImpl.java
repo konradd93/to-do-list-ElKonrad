@@ -35,11 +35,15 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task saveTask(Task task) {
 
-        if (task.getContributors() != null)
-            task = addContributors(task);
+        if (task.getContributors() != null && ifContributorsIdAreNotSetting(task.getContributors()))
+            task = setIdForContributors(task);
 
         task.setActive(true);
         return taskRepository.save(task);
+    }
+
+    private boolean ifContributorsIdAreNotSetting(Set<User> contributors) {
+        return contributors.stream().anyMatch(e -> e.getId() == null);
     }
 
     @Override
@@ -74,8 +78,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Set<User> getContributorsByTaskId(Long id) {
-        return taskRepository.findContributorsByTaskId(id);
+    public Set<User> getContributorsByTaskId(Long taskId) {
+        return taskRepository.findContributorsByTaskId(taskId);
     }
 
     @Override
@@ -92,11 +96,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task updateTask(Task task) {
-        Task updatedTask = Optional.ofNullable(taskRepository.update(addContributors(task))).orElseThrow(() -> new TaskCannotBeUpdatedException(task.getId()));
+        Long taskId = task.getId();
+        if (task.getContributors() != null && ifContributorsIdAreNotSetting(task.getContributors()))
+            task = setIdForContributors(task);
+        Task updatedTask = Optional.ofNullable(taskRepository.update(task)).orElseThrow(() -> new TaskCannotBeUpdatedException(taskId));
         return updatedTask;
     }
 
-    private Task addContributors(Task task) {
+    private Task setIdForContributors(Task task) {
         task.getContributors().stream().forEach(e -> {
             User contributor = userService.getUserByUsername(e.getUsername());
             e.setId(contributor.getId());

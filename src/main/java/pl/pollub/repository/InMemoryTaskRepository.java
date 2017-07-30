@@ -49,7 +49,7 @@ public class InMemoryTaskRepository {
 
     public Set<Task> findTaskByOwnerId(Long ownerId){
         Set<Task> ownerTasks = tasksEntity.stream().filter(e -> e.getOwner().getId() == ownerId).collect(Collectors.toSet());
-        return ownerTasks;
+        return ownerTasks.isEmpty() ? null : ownerTasks;
     }
 
     public Set<User> findContributorsByTaskId(Long id) {
@@ -83,10 +83,11 @@ public class InMemoryTaskRepository {
     }
 
     public Task update(Task task) {
+        if (tasksEntity.stream().noneMatch(e -> e.getId() == task.getId()))
+            return null;
         Task actualTask = tasksEntity.stream().filter(e -> e.getId() == task.getId()).findFirst().get();
         actualTask.setContent(Optional.ofNullable(task.getContent()).orElse(actualTask.getContent()));
         actualTask.setContributors(Optional.ofNullable(task.getContributors()).orElse(actualTask.getContributors()));
-
         return actualTask;
     }
 
