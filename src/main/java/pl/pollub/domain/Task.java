@@ -21,6 +21,8 @@ public class Task {
 
     private boolean isActive;
 
+    private User endedBy;
+
     @NotNull
     private User owner;
 
@@ -29,5 +31,13 @@ public class Task {
     public Task(long id, String content) {
         this.id = id;
         this.content = content;
+    }
+
+    public Task(Long id, String content, boolean isActive, User owner, Set<User> contributors) {
+        this.id = id;
+        this.content = content;
+        this.isActive = isActive;
+        this.owner = owner;
+        this.contributors = contributors;
     }
 }

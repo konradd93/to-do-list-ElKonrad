@@ -1,6 +1,8 @@
 package pl.pollub.unit;
 
 import com.google.common.collect.Sets;
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsMapContaining;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,10 +22,11 @@ import pl.pollub.service.TaskService;
 import pl.pollub.service.UserService;
 import pl.pollub.service.impl.TaskServiceImpl;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.when;
@@ -251,6 +254,94 @@ public class TaskListTest {
         assertNotNull(contributors);
         assertTrue(contributors.contains(contributor1));
         assertTrue(contributors.contains(contributor2));
+    }
+
+    /**
+     * Praca domowa zadanie 1
+     */
+    @Test
+    public void userShouldSeeHisTodosAndTodosInWhichHeIsAContributor(){
+        User user1 = new User(1L, "user1");
+        User user2 = new User(2L, "user2");
+        User user3 = new User(3L, "user3");
+        Task task1 = new Task(1L, "Test1", true, user1, new HashSet<>(Arrays.asList(user2,user3)));
+        Task task2 = new Task(2L, "Test2", true, user1, new HashSet<>());
+        Task task3 = new Task(3L, "Test3", true, user2, new HashSet<>(Arrays.asList(user1,user3)));
+        Task task4 = new Task(4L, "Test4", true, user3, new HashSet<>(Arrays.asList(user1)));
+        Task task5 = new Task(5L, "Test5", true, user3, new HashSet<>(Arrays.asList(user2)));
+        taskService.saveTask(task1);
+        taskService.saveTask(task2);
+        taskService.saveTask(task3);
+        taskService.saveTask(task4);
+        taskService.saveTask(task5);
+
+        when(userService.getUserById(1L)).thenReturn(user1);
+        Set<Task> resultSet = taskService.getContributedAndTheirOwnTasksByUser(1L);
+
+        assertThat(resultSet, hasItems(task1,task2,task3,task4));
+    }
+
+    /**
+     * Praca domowa zadanie 2
+     */
+    @Test
+    public void usersTodoShouldBeRemovedFromHistTaskListWhenTodoIsFinalized(){
+        User user1 = new User(1L, "user1");
+        User user2 = new User(2L, "user2");
+        User user3 = new User(3L, "user3");
+        Task task1 = new Task(1L, "Test1", true, user1, new HashSet<>(Arrays.asList(user2,user3)));
+        Task task2 = new Task(2L, "Test2", true, user1, new HashSet<>());
+        Task task3 = new Task(3L, "Test3", true, user2, new HashSet<>(Arrays.asList(user1,user3)));
+        Task task4 = new Task(4L, "Test4", true, user3, new HashSet<>(Arrays.asList(user1)));
+        Task task5 = new Task(5L, "Test5", true, user3, new HashSet<>(Arrays.asList(user2)));
+        taskService.saveTask(task1);
+        taskService.saveTask(task2);
+        taskService.saveTask(task3);
+        taskService.saveTask(task4);
+        taskService.saveTask(task5);
+
+        //task 2 and 4 are ended
+        when(userService.getUserById(1L)).thenReturn(user1);
+        when(userService.getUserById(3L)).thenReturn(user3);
+        Task endedTask1 = taskService.endTaskByUser(user1, 2L);
+        Task endedTask2 = taskService.endTaskByUser(user3, 4L);
+        Set<Task> resultSet = taskService.getContributedAndTheirOwnTasksByUser(1L);
+
+        assertThat(resultSet, hasItems(task1,task3));
+        assertThat(resultSet, not(hasItems(endedTask1,endedTask2)));
+    }
+
+    /**
+     * Praca domowa zadanie 2.1
+     */
+    @Test
+    public void userCanSeeAllFinishedTasks(){
+        User user1 = new User(1L, "user1");
+        User user2 = new User(2L, "user2");
+        User user3 = new User(3L, "user3");
+        Task task1 = new Task(1L, "Test1", true, user1, new HashSet<>(Arrays.asList(user2,user3)));
+        Task task2 = new Task(2L, "Test2", true, user1, new HashSet<>());
+        Task task3 = new Task(3L, "Test3", true, user2, new HashSet<>(Arrays.asList(user1,user3)));
+        Task task4 = new Task(4L, "Test4", true, user3, new HashSet<>(Arrays.asList(user1)));
+        Task task5 = new Task(5L, "Test5", true, user3, new HashSet<>(Arrays.asList(user2)));
+        taskService.saveTask(task1);
+        taskService.saveTask(task2);
+        taskService.saveTask(task3);
+        taskService.saveTask(task4);
+        taskService.saveTask(task5);
+
+        //task 2 and 4 are ended
+        when(userService.getUserById(1L)).thenReturn(user1);
+        when(userService.getUserById(2L)).thenReturn(user2);
+        when(userService.getUserById(3L)).thenReturn(user3);
+        Task endedTask1 = taskService.endTaskByUser(user1, 2L);
+        Task endedTask2 = taskService.endTaskByUser(user3, 4L);
+
+        Set<Task> allFinishedTasks = taskService.getAllFinishedTasks();
+        HashMap<Task, User> taskUserHashMap = new HashMap<>();
+        allFinishedTasks.forEach(e -> taskUserHashMap.put(e,e.getEndedBy()));
+        assertThat(taskUserHashMap, IsMapContaining.hasEntry(endedTask1,user1));
+        assertThat(taskUserHashMap, IsMapContaining.hasEntry(endedTask2,user3));
     }
 }
 

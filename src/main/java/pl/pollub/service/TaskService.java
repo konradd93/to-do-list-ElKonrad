@@ -30,4 +30,10 @@ public interface TaskService {
     Set<Task> getAllSharedTasksForUser(Long userId);
 
     Task updateTask(Task task);
+
+    Set<Task> getContributedAndTheirOwnTasksByUser(Long userId);
+
+    Task endTaskByUser(User user,Long taskId);
+
+    Set<Task> getAllFinishedTasks();
 }

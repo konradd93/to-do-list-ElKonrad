@@ -15,6 +15,7 @@ import pl.pollub.service.UserService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by konrad on 25.07.17.
@@ -103,6 +104,14 @@ public class TaskServiceImpl implements TaskService {
         return updatedTask;
     }
 
+    @Override
+    public Set<Task> getContributedAndTheirOwnTasksByUser(Long userId) {
+        Set<Task> allSharedTasksForUser = getAllSharedTasksForUser(userId).stream().filter(Task::isActive).collect(Collectors.toSet());
+        Set<Task> allOwnerTask = getTasksByOwnerId(userId).stream().filter(Task::isActive).collect(Collectors.toSet());
+        allSharedTasksForUser.addAll(allOwnerTask);
+        return  allSharedTasksForUser;
+    }
+
     private Task setIdForContributors(Task task) {
         task.getContributors().stream().forEach(e -> {
             User contributor = userService.getUserByUsername(e.getUsername());
@@ -110,5 +119,17 @@ public class TaskServiceImpl implements TaskService {
         });
 
         return task;
+    }
+
+    @Override
+    public Task endTaskByUser(User user,Long taskId){
+        Task task = getTaskById(taskId);
+        task.setActive(false);
+        task.setEndedBy(user);
+        return updateTask(task);
+    }
+
+    public Set<Task> getAllFinishedTasks(){
+        return getAllTasks().stream().filter(e->!e.isActive()).collect(Collectors.toSet());
     }
 }
