@@ -11,14 +11,11 @@ import pl.pollub.repository.InMemoryUserRepository;
 import pl.pollub.service.UserService;
 import pl.pollub.service.impl.UserServiceImpl;
 
-import javax.validation.constraints.AssertTrue;
-
 import java.util.Arrays;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class TaskServiceImplTest {
+public class TaskListTest2 {
 
     @Mock
     private InMemoryTaskRepository taskRepository;
