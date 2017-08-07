@@ -1,5 +1,6 @@
 package pl.pollub.unit;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,8 +21,11 @@ import pl.pollub.service.TaskService;
 import pl.pollub.service.UserService;
 import pl.pollub.service.impl.TaskServiceImpl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -251,6 +255,106 @@ public class TaskListTest {
         assertNotNull(contributors);
         assertTrue(contributors.contains(contributor1));
         assertTrue(contributors.contains(contributor2));
+    }
+
+    @Test
+    public void userSeeHisTasksAndAssignedTasks(){
+        User Adrian = new User(1L,"Adrian");
+
+        User Bartek = new User(2L,"Bartek");
+        User Andrzej = new User(3L,"Andrzej");
+
+        Task task1 = new Task(1L, "Zostac wielkim programista", true, Adrian, Sets.newHashSet(Bartek,Andrzej));
+        Task task2 = new Task(2L, "Zdobyc wladze nad swiatem", true, Bartek, Sets.newHashSet(Andrzej,Adrian));
+        Task task3 = new Task(3L, "Wypic piwo z kolegami", true, Andrzej, Sets.newHashSet(Bartek,Adrian));
+        Task task4 = new Task(1L, "Umyc zeby", true, Adrian, Sets.newHashSet(Bartek));
+
+        taskService.saveTask(task1);
+        taskService.saveTask(task2);
+        taskService.saveTask(task3);
+        taskService.saveTask(task4);
+
+        assertEquals(taskService.getAllSharedTasksForUser(Adrian.getId()),Sets.newHashSet(task2,task3));
+        assertEquals(taskService.getTasksByOwnerId(Adrian.getId()),Sets.newHashSet(task1,task4));
+    }
+
+    @Test
+    public void taskDisappearFromListWhenOwnerOrContributorDoneIt(){
+        User Adrian = new User(1L,"Adrian");
+
+        User Bartek = new User(2L,"Bartek");
+        User Andrzej = new User(3L,"Andrzej");
+
+        Task task1 = new Task(1L, "Zostac wielkim programista", true, Adrian, Sets.newHashSet(Bartek,Andrzej));
+        Task task2 = new Task(2L, "Zdobyc wladze nad swiatem", true, Adrian, Sets.newHashSet(Andrzej,Bartek));
+        Task task3 = new Task(3L, "Wypic piwo z kolegami", true, Adrian, Sets.newHashSet(Bartek,Andrzej));
+        Task task4 = new Task(4L, "Umyc zeby", true, Adrian, Sets.newHashSet(Bartek));
+        Task task5 = new Task(5L, "Zagrac w mortal combat", true, Bartek, Sets.newHashSet(Adrian,Andrzej));
+        Task task6 = new Task(6L, "Zrobic zakupy", true, Bartek, Sets.newHashSet(Adrian));
+        Task task7 = new Task(7L, "Buahahaha", true, Andrzej, Sets.newHashSet(Adrian,Bartek));
+
+        taskService.saveTask(task1);
+        taskService.saveTask(task2);
+        taskService.saveTask(task3);
+        taskService.saveTask(task4);
+        taskService.saveTask(task5);
+        taskService.saveTask(task6);
+        taskService.saveTask(task7);
+
+        when(userService.getUserById(Adrian.getId())).thenReturn(Adrian);
+        taskService.finishTask(task1.getId(),Adrian.getId());
+        when(userService.getUserById(Bartek.getId())).thenReturn(Bartek);
+        taskService.finishTask(task5.getId(),Bartek.getId());
+        assertEquals(taskService.getDoneTasksByOwnerId(Adrian.getId()),Sets.newHashSet(task2,task4,task3));
+        assertEquals(taskService.getAllDoneSharedTasksForUser(Adrian.getId()),Sets.newHashSet(task6,task7));
+
+        taskService.finishTask(task2.getId(),Bartek.getId());
+        taskService.finishTask(task7.getId(),Bartek.getId());
+        assertEquals(taskService.getDoneTasksByOwnerId(Adrian.getId()),Sets.newHashSet(task3,task4));
+        assertEquals(taskService.getAllDoneSharedTasksForUser(Adrian.getId()),Sets.newHashSet(task6));
+    }
+
+    @Test
+    public void getAllFinishedTaskWithUserWhoDoneThey(){
+        User Adrian = new User(1L,"Adrian");
+
+        User Bartek = new User(2L,"Bartek");
+        User Andrzej = new User(3L,"Andrzej");
+
+        Task task1 = new Task(1L, "Zostac wielkim programista", true, Adrian, Sets.newHashSet(Bartek,Andrzej));
+        Task task2 = new Task(2L, "Zdobyc wladze nad swiatem", true, Adrian, Sets.newHashSet(Andrzej,Bartek));
+        Task task3 = new Task(3L, "Wypic piwo z kolegami", true, Adrian, Sets.newHashSet(Bartek,Andrzej));
+        Task task4 = new Task(4L, "Umyc zeby", true, Adrian, Sets.newHashSet(Bartek));
+        Task task5 = new Task(5L, "Zagrac w mortal combat", true, Adrian, Sets.newHashSet(Adrian,Andrzej));
+        Task task6 = new Task(6L, "Zrobic zakupy", true, Adrian, Sets.newHashSet(Adrian));
+        Task task7 = new Task(7L, "Buahahaha", true, Andrzej, Sets.newHashSet(Adrian,Bartek));
+        Task task8 = new Task(8L, "Uhahahaha", true, Bartek, Sets.newHashSet(Adrian,Andrzej));
+
+        taskService.saveTask(task1);
+        taskService.saveTask(task2);
+        taskService.saveTask(task3);
+        taskService.saveTask(task4);
+        taskService.saveTask(task5);
+        taskService.saveTask(task6);
+        taskService.saveTask(task7);
+        taskService.saveTask(task8);
+
+        when(userService.getUserById(Adrian.getId())).thenReturn(Adrian);
+        taskService.finishTask(task1.getId(),Adrian.getId());
+        when(userService.getUserById(Andrzej.getId())).thenReturn(Andrzej);
+        taskService.finishTask(task2.getId(),Andrzej.getId());
+        when(userService.getUserById(Bartek.getId())).thenReturn(Bartek);
+        taskService.finishTask(task5.getId(),Bartek.getId());
+        taskService.finishTask(task7.getId(),Bartek.getId());
+
+        Map<Task,User> doneTasksWithUsersWhoDoneThey = new HashMap<Task,User>(){{
+            put(task1,Adrian);
+            put(task2,Andrzej);
+            put(task5,Bartek);
+            put(task7,Bartek);
+        }};
+
+        assertEquals(taskService.getAllFinishedTaskWithUsersWhoDoneThey(Adrian.getId()),doneTasksWithUsersWhoDoneThey);
     }
 }
 

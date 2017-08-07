@@ -48,7 +48,12 @@ public class InMemoryTaskRepository {
     }
 
     public Set<Task> findTaskByOwnerId(Long ownerId){
-        Set<Task> ownerTasks = tasksEntity.stream().filter(e -> e.getOwner().getId() == ownerId).collect(Collectors.toSet());
+        Set<Task> ownerTasks = tasksEntity.stream().filter(e -> Objects.equals(e.getOwner().getId(), ownerId)).collect(Collectors.toSet());
+        return ownerTasks.isEmpty() ? null : ownerTasks;
+    }
+
+    public Set<Task> findDoneTasksByOwnerId(Long ownerId){
+        Set<Task> ownerTasks = tasksEntity.stream().filter(e -> Objects.equals(e.getOwner().getId(), ownerId) && e.isActive()).collect(Collectors.toSet());
         return ownerTasks.isEmpty() ? null : ownerTasks;
     }
 
@@ -72,12 +77,26 @@ public class InMemoryTaskRepository {
 
         Set<Task> tasks = new HashSet<>();
 
-        tasksEntity.stream()
-                .forEach(e -> e.getContributors().stream()
+        tasksEntity
+                .forEach(e -> e.getContributors()
                             .forEach(e1 -> {
-                                if (e1.getId() == userId)
+                                if (Objects.equals(e1.getId(), userId))
                                     tasks.add(e);
                             })
+                );
+        return tasks.isEmpty() ? null : tasks;
+    }
+
+    public Set<Task> findAllDoneSharedTasksForUser(Long userId) {
+
+        Set<Task> tasks = new HashSet<>();
+
+        tasksEntity
+                .forEach(e -> e.getContributors()
+                        .forEach(e1 -> {
+                            if (Objects.equals(e1.getId(), userId) && e.isActive())
+                                tasks.add(e);
+                        })
                 );
         return tasks.isEmpty() ? null : tasks;
     }
