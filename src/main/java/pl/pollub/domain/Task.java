@@ -24,10 +24,20 @@ public class Task {
     @NotNull
     private User owner;
 
+    private User whoFinish;
+
     private Set<User> contributors;
 
     public Task(long id, String content) {
         this.id = id;
         this.content = content;
+        isActive=false;
+    }
+
+    public Task(long id, String content, boolean isActive, User owner, Set<User> contributors) {
+        this.id = id;
+        this.content = content;
+        this.owner = owner;
+        this.contributors = contributors;
     }
 }

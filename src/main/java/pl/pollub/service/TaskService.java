@@ -4,6 +4,7 @@ import pl.pollub.domain.Task;
 import pl.pollub.domain.User;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,4 +31,12 @@ public interface TaskService {
     Set<Task> getAllSharedTasksForUser(Long userId);
 
     Task updateTask(Task task);
+
+    Task finishTask(Long taskId,Long userId);
+
+    Map<Task,User> getAllFinishedTaskWithUsersWhoDoneThey(Long userId);
+
+    Set<Task> getAllDoneSharedTasksForUser(Long userId);
+
+    Set<Task> getDoneTasksByOwnerId(Long ownerId);
 }

@@ -13,8 +13,11 @@ import pl.pollub.service.TaskService;
 import pl.pollub.service.UserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by konrad on 25.07.17.
@@ -73,8 +76,13 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Set<Task> getTasksByOwnerId(Long ownerId) {
         userService.getUserById(ownerId);
-        Set<Task> ownerTasks = Optional.ofNullable(taskRepository.findTaskByOwnerId(ownerId)).orElseThrow(() -> new TaskForUserNotFoundException(ownerId));
-        return ownerTasks;
+        return Optional.ofNullable(taskRepository.findTaskByOwnerId(ownerId)).orElseThrow(() -> new TaskForUserNotFoundException(ownerId));
+    }
+
+    @Override
+    public Set<Task> getDoneTasksByOwnerId(Long ownerId) {
+        userService.getUserById(ownerId);
+        return Optional.ofNullable(taskRepository.findDoneTasksByOwnerId(ownerId)).orElseThrow(() -> new TaskForUserNotFoundException(ownerId));
     }
 
     @Override
@@ -90,8 +98,13 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Set<Task> getAllSharedTasksForUser(Long userId) {
         userService.getUserById(userId);
-        Set<Task> sharedTasks = Optional.ofNullable(taskRepository.findAllSharedTasksForUser(userId)).orElseThrow(() -> new SharedTaskForUserNotFoundException(userId));
-        return sharedTasks;
+        return Optional.ofNullable(taskRepository.findAllSharedTasksForUser(userId)).orElseThrow(() -> new SharedTaskForUserNotFoundException(userId));
+    }
+
+    @Override
+    public Set<Task> getAllDoneSharedTasksForUser(Long userId) {
+        userService.getUserById(userId);
+        return Optional.ofNullable(taskRepository.findAllDoneSharedTasksForUser(userId)).orElseThrow(() -> new SharedTaskForUserNotFoundException(userId));
     }
 
     @Override
@@ -102,6 +115,22 @@ public class TaskServiceImpl implements TaskService {
         Task updatedTask = Optional.ofNullable(taskRepository.update(task)).orElseThrow(() -> new TaskCannotBeUpdatedException(taskId));
         return updatedTask;
     }
+
+    @Override
+    public Task finishTask(Long taskId,Long userId) {
+        Task finishedTask = Optional.ofNullable(taskRepository.findOne(taskId)).orElseThrow(() -> new TaskCannotBeUpdatedException(taskId));
+        finishedTask.setActive(false);
+        finishedTask.setWhoFinish(userService.getUserById(userId));
+        return finishedTask;
+    }
+
+    @Override
+    public Map<Task, User> getAllFinishedTaskWithUsersWhoDoneThey(Long userId) {
+        Set<Task> allTaskForUser = taskRepository.findTaskByOwnerId(userId);
+        allTaskForUser.addAll(taskRepository.findAllSharedTasksForUser(userId));
+        return allTaskForUser.stream().filter(task -> !task.isActive()).collect(Collectors.toMap(Function.identity(),Task::getWhoFinish));
+    }
+
 
     private Task setIdForContributors(Task task) {
         task.getContributors().stream().forEach(e -> {
