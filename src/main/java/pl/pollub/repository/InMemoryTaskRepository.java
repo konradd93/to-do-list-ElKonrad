@@ -20,6 +20,8 @@ public class InMemoryTaskRepository {
 
     private List<Task> tasksEntity = new LinkedList<>();
 
+    private List<Task> doneTasks = new LinkedList<>();
+
     public Task save(Task task){
         requireNonNull(task);
         task.setId(generateId());
@@ -89,6 +91,36 @@ public class InMemoryTaskRepository {
         actualTask.setContent(Optional.ofNullable(task.getContent()).orElse(actualTask.getContent()));
         actualTask.setContributors(Optional.ofNullable(task.getContributors()).orElse(actualTask.getContributors()));
         return actualTask;
+    }
+
+    public Task markTheTaskAsDoneByTaskId(Long taskId) {
+        Task completedTask = findOne(taskId);
+        tasksEntity.remove(completedTask);
+        completedTask.setActive(false);
+        doneTasks.add(completedTask);
+        return completedTask;
+    }
+
+    public Set<Task> getAllCompletedTaskByUserId(Long userId){
+        Set<Task> completedTasks = getAllCompletedTasksByUserId(userId);
+        completedTasks.addAll(getAllCompletedSharedTasksForUser(userId));
+
+        return completedTasks;
+    }
+
+    private Set<Task> getAllCompletedTasksByUserId(Long userId) {
+        return doneTasks.stream().filter(e -> e.getOwner().getId().equals(userId)).collect(Collectors.toSet());
+    }
+
+    private Set<Task> getAllCompletedSharedTasksForUser(Long userId) {
+        Set<Task> completedTasks = new HashSet<>();
+        doneTasks.stream().forEach(e -> e.getContributors().stream()
+                .forEach(e1 -> {
+                    if (e1.getId() == userId)
+                        completedTasks.add(e);
+                })
+        );
+        return completedTasks;
     }
 
     private Long generateId() {

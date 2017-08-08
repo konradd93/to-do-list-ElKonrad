@@ -20,6 +20,7 @@ import pl.pollub.service.TaskService;
 import pl.pollub.service.UserService;
 import pl.pollub.service.impl.TaskServiceImpl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -251,6 +252,34 @@ public class TaskListTest {
         assertNotNull(contributors);
         assertTrue(contributors.contains(contributor1));
         assertTrue(contributors.contains(contributor2));
+    }
+
+    // ---1---
+    @Test
+    public void georgeSeesAllHisAndSharedWithAndrewTasks(){
+        User george = new User(1L,"George");
+        User andrew = new User(2L,"Andrew");
+
+        when(userService.getUserById(1L)).thenReturn(george);
+
+       /* //George tasks
+        Task privateTask1 = new Task(1L,"Task1",false,george,null);
+        Task privateTask2 = new Task(2L,"Task2",false,george,null);
+        taskService.saveTask(privateTask1);
+        taskService.saveTask(privateTask2);
+        assertTrue("Gorge doesn't see his private tasks", taskService.getTasksByOwnerId(1L).containsAll(Arrays.asList(privateTask1, privateTask2)));
+
+        //George task shared with Andrew
+        Task georgeTaskSharedWithAndrew = new Task(3L, "Task3", false, george, Sets.newHashSet(andrew));
+        taskService.saveTask(georgeTaskSharedWithAndrew);
+        assertTrue("Gorge doesn't see his private task shared with Andrew", taskService.getTasksByOwnerId(1L).contains(georgeTaskSharedWithAndrew));
+        assertTrue("Andrew doesn't see task shared with George", taskService.getAllSharedTasksForUser(2L).contains(georgeTaskSharedWithAndrew));
+
+        //Andrew task shared with George
+        Task andrewTasksharedWithGeorge = new Task(4L, "Task4", false, andrew, Sets.newHashSet(george));
+        taskService.saveTask(andrewTasksharedWithGeorge);
+        assertTrue("Gorge doesn't see Andrew task shared with him", taskService.getAllSharedTasksForUser(1L).contains(andrewTasksharedWithGeorge));
+*/
     }
 }
 

@@ -1,5 +1,6 @@
 package pl.pollub.service.impl;
 
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.pollub.domain.Task;
@@ -12,9 +13,12 @@ import pl.pollub.repository.InMemoryTaskRepository;
 import pl.pollub.service.TaskService;
 import pl.pollub.service.UserService;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by konrad on 25.07.17.
@@ -102,6 +106,30 @@ public class TaskServiceImpl implements TaskService {
         Task updatedTask = Optional.ofNullable(taskRepository.update(task)).orElseThrow(() -> new TaskCannotBeUpdatedException(taskId));
         return updatedTask;
     }
+
+    @Override
+    public Set<Task> getAllSharedAndOwnTasksByUserId(Long userId) {
+        Set<Task> allOwnerTasks = Optional.ofNullable(taskRepository.findTaskByOwnerId(userId)).orElse(new HashSet<>());
+        Set<Task> allSharedTasksForUser = Optional.ofNullable(taskRepository.findAllSharedTasksForUser(userId)).orElse(new HashSet<>());
+
+        return Sets.union(allOwnerTasks,allSharedTasksForUser);
+    }
+
+    @Override
+    public void markTheTaskAsDoneByTaskId(Long taskId) {
+        taskRepository.markTheTaskAsDoneByTaskId(taskId);
+    }
+
+    @Override
+    public Set<Task> getActiveTasksByUserId(Long userId) {
+        return getAllSharedAndOwnTasksByUserId(userId).stream().filter(e -> e.isActive()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Task> getCompletedTasksByUserId(Long userId) {
+        return taskRepository.getAllCompletedTaskByUserId(userId);
+    }
+
 
     private Task setIdForContributors(Task task) {
         task.getContributors().stream().forEach(e -> {
